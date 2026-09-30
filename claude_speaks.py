@@ -3,6 +3,7 @@
 Tout tourne sur ton Mac Apple Silicon. Pas d'API, pas de compte, zero token.
 Tuto : https://a-foutoyet.github.io/claude-speaks/
 
+    python claude_speaks.py transcrire    ecrit voix.txt a partir de voix.wav (Whisper)
     python claude_speaks.py say "Salut"   fait parler (lance le serveur si besoin)
     python claude_speaks.py stop          coupe la parole
     python claude_speaks.py hook          point d'entree du hook Stop de Claude Code
@@ -25,6 +26,7 @@ import time
 # ---- reglages ----------------------------------------------------------------
 LANGUE = "french"      # french english german italian portuguese spanish japanese korean russian chinese
 MODELE = "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16"
+WHISPER = "openai/whisper-large-v3-turbo"   # sert seulement a la commande transcrire
 TEMPERATURE = 0.6      # plus bas = voix plus reguliere, plus haut = plus vivante mais moins stable
 # ------------------------------------------------------------------------------
 
@@ -82,6 +84,21 @@ def blocs(txt: str, maxi: int = 600) -> list:
             buf = ""
         buf = f"{buf} {s}".strip()
     return out + ([buf] if buf else [])
+
+
+# ---- transcription de ton enregistrement ---------------------------------------
+
+def transcrire() -> None:
+    """Le texte de voix.txt doit coller mot pour mot a voix.wav, sinon la voix deraille.
+    Whisper l'ecrit pour toi, en local. Relis-le quand meme."""
+    if not VOIX.exists():
+        sys.exit("Pas de voix.wav : fais d'abord la conversion avec ffmpeg (etape 5).")
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    from mlx_audio.stt import load
+    texte = load(WHISPER).generate(str(VOIX), language=None).text.strip()   # langue detectee seule
+    TEXTE_VOIX.write_text(texte + "\n")
+    print(texte)
+    print("\nC'est ecrit dans ~/.claude-speaks/voix.txt. Relis-le : un mot faux fait derailler la voix.")
 
 
 # ---- le serveur : garde le modele en memoire ----------------------------------
@@ -241,6 +258,8 @@ if __name__ == "__main__":
         serve()
     elif cmd == "hook":
         hook()
+    elif cmd == "transcrire":
+        transcrire()
     elif cmd == "_dire":
         dire(sys.stdin.read(), auto=True)
     elif cmd == "say":

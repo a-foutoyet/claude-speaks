@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claude Code avec ta voix</title>
+<meta name="description" content="Tuto pas à pas : faire lire les réponses de Claude Code à voix haute, avec ta propre voix clonée. En local sur Mac, gratuit, zéro token.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --background:0 0% 100%; --foreground:240 10% 3.9%;
+  --muted:240 4.8% 95.9%; --muted-foreground:240 3.8% 46.1%;
+  --border:240 5.9% 90%; --ring:240 5.9% 10%;
+  --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+  --success:142 52% 32%; --warning:32 90% 38%;
+  --radius:0.5rem;
+  --t-display:60px; --lh-display:60px;
+  --t-h2:36px; --lh-h2:44px;
+  --t-h3:20px; --lh-h3:28px;
+  --t-lede:18px; --lh-lede:28px;
+  --t-body:16px; --lh-body:24px;
+  --t-small:14px; --lh-small:20px;
+  --t-micro:12px; --lh-micro:16px;
+  --e1:4px; --e2:8px; --e3:12px; --e4:16px; --e5:24px; --e6:32px; --e7:48px; --e8:80px;
+  --duree:150ms; --ease:cubic-bezier(0.4,0,0.2,1);
+  --mesure:68ch;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --background:240 10% 3.9%; --foreground:0 0% 98%;
+    --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%;
+    --border:240 3.7% 15.9%; --ring:240 4.9% 83.9%;
+    --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --success:142 45% 55%; --warning:38 92% 60%;
+  }
+}
+:root[data-theme="dark"]{
+  --background:240 10% 3.9%; --foreground:0 0% 98%;
+  --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%;
+  --border:240 3.7% 15.9%; --ring:240 4.9% 83.9%;
+  --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+  --success:142 45% 55%; --warning:38 92% 60%;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:hsl(var(--background));color:hsl(var(--foreground));
+  font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:var(--t-body);line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-variant-numeric:tabular-nums;text-wrap:pretty;
+}
+.page{max-width:760px;margin:0 auto;padding:var(--e8) var(--e5)}
+.bloc + .bloc{margin-top:var(--e8)}
+h1,h2,h3{margin:0;letter-spacing:-.025em;text-wrap:balance}
+h1{font-size:var(--t-display);line-height:var(--lh-display);font-weight:300}
+h2{font-size:var(--t-h2);line-height:var(--lh-h2);font-weight:500}
+h3{font-size:var(--t-h3);line-height:var(--lh-h3);font-weight:500;letter-spacing:-.01em}
+p{margin:0;max-width:var(--mesure)}
+p + p, p + ul, ul + p, .code + p, p + .code, .code + .code, ul + .code, .note + p, p + .note, .code + .note, .note + .code{margin-top:var(--e4)}
+a{color:inherit;text-underline-offset:3px;text-decoration-color:hsl(var(--muted-foreground)/.6);transition:text-decoration-color var(--duree) var(--ease)}
+a:hover{text-decoration-color:currentColor}
+a:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px;border-radius:2px}
+.eyebrow{font-size:var(--t-small);line-height:var(--lh-small);color:hsl(var(--muted-foreground));margin-bottom:var(--e3)}
+.lede{font-size:var(--t-lede);line-height:var(--lh-lede);color:hsl(var(--muted-foreground));margin-top:var(--e5)}
+.sourdine{color:hsl(var(--muted-foreground))}
+.small{font-size:var(--t-small);line-height:var(--lh-small)}
+code{font-family:"Geist Mono",ui-monospace,monospace;font-size:.875em;background:hsl(var(--muted));padding:1px 5px;border-radius:4px}
+ul{margin:0;padding-left:var(--e5);max-width:var(--mesure)}
+li + li{margin-top:var(--e2)}
+
+/* chiffres du haut */
+.faits{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--e4);margin-top:var(--e7);padding:0;list-style:none;max-width:none}
+.faits li{margin:0;padding-top:var(--e4);border-top:1px solid hsl(var(--border))}
+.faits b{display:block;font-size:var(--t-h3);line-height:var(--lh-h3);font-weight:500;letter-spacing:-.01em}
+.faits span{font-size:var(--t-small);line-height:var(--lh-small);color:hsl(var(--muted-foreground))}
+
+/* sommaire */
+.sommaire{display:flex;flex-wrap:wrap;gap:var(--e2);margin-top:var(--e7);padding:0;list-style:none;max-width:none}
+.sommaire li{margin:0}
+.sommaire a{display:inline-flex;align-items:center;height:32px;padding:0 var(--e3);font-size:var(--t-small);text-decoration:none;
+  border:1px solid hsl(var(--border));border-radius:999px;color:hsl(var(--muted-foreground));
+  transition:background-color var(--duree) var(--ease),color var(--duree) var(--ease)}
+.sommaire a:hover{background:hsl(var(--muted));color:hsl(var(--foreground))}
+
+/* etapes */
+.etape{display:grid;grid-template-columns:40px 1fr;gap:var(--e4)}
+.num{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;border:1px solid hsl(var(--border));font:500 var(--t-small)/1 Geist,sans-serif;margin-top:6px}
+.etape h2{font-size:var(--t-h3);line-height:var(--lh-h3);margin-bottom:var(--e3);margin-top:8px}
+.etape .corps{min-width:0}
+
+/* bloc de code avec bouton copier */
+.code{position:relative;max-width:100%}
+.code pre{margin:0;padding:var(--e4) 56px var(--e4) var(--e4);
+  background:hsl(var(--muted)/.5);border:1px solid hsl(var(--border));border-radius:var(--radius);
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;line-height:20px;white-space:pre-wrap;overflow-wrap:anywhere}
+.code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.copier{position:absolute;top:8px;right:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
+  background:hsl(var(--background));color:hsl(var(--muted-foreground));border:1px solid hsl(var(--border));
+  border-radius:calc(var(--radius) - 2px);cursor:pointer;
+  transition:background-color var(--duree) var(--ease),color var(--duree) var(--ease),scale 120ms var(--ease)}
+.copier:hover{background:hsl(var(--muted));color:hsl(var(--foreground))}
+.copier:active{scale:.96}
+.copier:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}
+.copier svg{width:16px;height:16px}
+.copier .ok{display:none;color:hsl(var(--success))}
+.copier.fait .ko{display:none}
+.copier.fait .ok{display:block}
+.copier.fait .ok path{stroke-dasharray:24;stroke-dashoffset:24;animation:trace 320ms var(--ease) forwards}
+@keyframes trace{to{stroke-dashoffset:0}}
+
+/* encart */
+.note{display:grid;grid-template-columns:20px 1fr;gap:var(--e3);padding:var(--e4);
+  border:1px solid hsl(var(--border));border-radius:var(--radius);font-size:var(--t-small);line-height:var(--lh-small)}
+.note svg{width:18px;height:18px;margin-top:1px;color:hsl(var(--muted-foreground))}
+.note.attention svg{color:hsl(var(--warning))}
+.note svg path,.note svg circle,.note svg line{stroke-dasharray:64;stroke-dashoffset:64;animation:trace 600ms var(--ease) 150ms forwards}
+.note p{max-width:none}
+.note + .note{margin-top:var(--e3)}
+
+/* tableau simple */
+table{width:100%;border-collapse:collapse;font-size:var(--t-small);line-height:var(--lh-small)}
+th,td{text-align:left;padding:var(--e3) var(--e2);border-bottom:1px solid hsl(var(--border));vertical-align:top}
+th{font-weight:500;color:hsl(var(--muted-foreground))}
+td code{white-space:nowrap}
+.tableau{overflow-x:auto;margin-top:var(--e4)}
+
+hr{border:0;border-top:1px solid hsl(var(--border));margin:var(--e8) 0 var(--e5)}
+footer{font-size:var(--t-small);line-height:var(--lh-small);color:hsl(var(--muted-foreground))}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition-duration:1ms!important;animation-duration:1ms!important}
+}
+@media (max-width:720px){
+  :root{--t-display:36px;--lh-display:40px;--t-h2:24px;--lh-h2:32px;--e8:48px}
+  .page{padding:var(--e7) var(--e4)}
+  .faits{grid-template-columns:repeat(2,1fr)}
+  .etape{grid-template-columns:1fr;gap:var(--e2)}
+  .num{margin-top:0}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <section class="bloc">
+    <p class="eyebrow">Tuto Claude Code</p>
+    <h1>Claude Code qui te répond avec ta voix</h1>
+    <p class="lede">Quand Claude a fini d'écrire, il te lit sa réponse à voix haute. Avec la voix de ton choix, la tienne si tu veux. Tout tourne sur ton Mac : pas d'API, pas d'abonnement, et ton forfait Claude n'est pas touché.</p>
+    <ul class="faits">
+      <li><b>0,3 s</b><span>avant le premier mot, une fois lancé</span></li>
+      <li><b>0 token</b><span>la voix se génère sur ton Mac</span></li>
+      <li><b>Gratuit</b><span>modèle open source, sans compte</span></li>
+      <li><b>10 langues</b><span>dont le français et l'anglais</span></li>
+    </ul>
+    <ul class="sommaire" aria-label="Sommaire">
+      <li><a href="#prerequis">Prérequis</a></li>
+      <li><a href="#etape-1">Installation</a></li>
+      <li><a href="#etape-5">Ta voix</a></li>
+      <li><a href="#etape-7">Brancher sur Claude</a></li>
+      <li><a href="#quotidien">Au quotidien</a></li>
+      <li><a href="#mieux">Mieux sonner</a></li>
+      <li><a href="#desinstaller">Désinstaller</a></li>
+    </ul>
+  </section>
+
+  <section class="bloc" id="prerequis">
+    <h2>Ce qu'il te faut</h2>
+    <p class="lede">Compte 15 minutes, dont la moitié pour enregistrer ta voix.</p>
+    <ul style="margin-top:var(--e5)">
+      <li>Un <b>Mac Apple Silicon</b> (M1 ou plus récent). Le tuto utilise MLX, la bibliothèque d'Apple pour ces puces. Il n'est pas prévu pour un PC ni pour un Mac Intel.</li>
+      <li><a href="https://claude.com/claude-code">Claude Code</a>, déjà installé.</li>
+      <li><a href="https://brew.sh">Homebrew</a>, pour installer Python et ffmpeg.</li>
+      <li>Environ <b>3,5 Go</b> d'espace libre : 2,4 Go pour le modèle, le reste pour Python et ses bibliothèques.</li>
+    </ul>
+    <p class="small sourdine" style="margin-top:var(--e4)">Toutes les commandes se tapent dans le Terminal. Chaque bloc a un bouton pour copier.</p>
+  </section>
+
+  <section class="bloc etape" id="etape-1">
+    <span class="num">1</span>
+    <div class="corps">
+      <h2>Installer Python et ffmpeg</h2>
+      <p>Python fait tourner le modèle. ffmpeg convertit ton enregistrement dans le bon format.</p>
+      <div class="code"><pre><code>brew install python ffmpeg</code></pre></div>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-2">
+    <span class="num">2</span>
+    <div class="corps">
+      <h2>Installer le moteur de voix</h2>
+      <p>Le script, ta voix et un environnement Python à part vont dans un seul dossier, <code>~/.claude-speaks</code>, lisible par toi seul. Le modèle, lui, ira dans le cache de Hugging Face (<code>~/.cache/huggingface</code>).</p>
+      <div class="code"><pre><code>mkdir -m 700 -p ~/.claude-speaks
+"$(brew --prefix)/bin/python3" -m venv ~/.claude-speaks/venv
+~/.claude-speaks/venv/bin/pip install mlx-audio==0.5.7</code></pre></div>
+      <p class="small sourdine">La version 0.5.7 de mlx-audio est celle qui a servi aux tests.</p>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-3">
+    <span class="num">3</span>
+    <div class="corps">
+      <h2>Télécharger le modèle</h2>
+      <p>Le modèle s'appelle <a href="https://github.com/QwenLM/Qwen3-TTS">Qwen3-TTS</a>. Il sait cloner une voix à partir de quelques secondes d'enregistrement. On prend sa version légère : 2,4 Go, téléchargés une seule fois depuis Hugging Face (80 secondes lors de nos tests).</p>
+      <div class="code"><pre><code>~/.claude-speaks/venv/bin/hf download mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16</code></pre></div>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-4">
+    <span class="num">4</span>
+    <div class="corps">
+      <h2>Récupérer le script</h2>
+      <p>Un seul fichier Python fait le lien entre Claude Code et le modèle. Il garde le modèle en mémoire pour parler vite, et il retire de la réponse ce qui ne se lit pas bien à l'oral.</p>
+      <div class="code"><pre><code>curl -fsSL -o ~/.claude-speaks/claude_speaks.py https://a-foutoyet.github.io/claude-speaks/claude_speaks.py</code></pre></div>
+      <p class="small sourdine">Tu peux <a href="claude_speaks.py">le lire avant</a> : environ 260 lignes commentées, sans aucun appel réseau.</p>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-5">
+    <span class="num">5</span>
+    <div class="corps">
+      <h2>Enregistrer ta voix</h2>
+      <p>C'est l'étape qui compte. Le modèle copie tout ce qu'il entend : ton timbre, ton débit, ton énergie, et le bruit de la pièce avec.</p>
+      <ul>
+        <li><b>10 à 30 secondes</b>, une seule personne qui parle.</li>
+        <li><b>Une pièce calme et sans écho.</b> Un placard rempli de vêtements vaut mieux qu'un salon vide. Le bruit de fond et la réverbération se clonent avec la voix, et impossible de les retirer ensuite.</li>
+        <li><b>Parle comme tu veux que Claude parle.</b> Ton débit et ton énergie se retrouveront dans toutes les réponses.</li>
+        <li><b>Parle dans la langue que Claude utilisera.</b></li>
+        <li><b>Ne retouche pas le son.</b> Débruiteur, compresseur et normalisation abîment le timbre, et le clone en hérite. Monter le volume, ça, pas de souci.</li>
+        <li>Le <b>dictaphone de l'iPhone</b> suffit. Envoie-toi le fichier par AirDrop.</li>
+      </ul>
+      <p>Ensuite, convertis l'enregistrement et écris <b>le texte exact</b> que tu prononces dedans, mot pour mot, avec la ponctuation. Remplace le chemin et la phrase par les tiens :</p>
+      <div class="code"><pre><code>ffmpeg -y -i ~/Downloads/ma-voix.m4a -ac 1 -ar 24000 ~/.claude-speaks/voix.wav
+echo "Le texte exact que je dis dans mon enregistrement." > ~/.claude-speaks/voix.txt</code></pre></div>
+      <div class="note attention">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <p>Si le texte ne correspond pas à l'enregistrement, la voix se met à inventer des sons ("heu heu", "sh sh") au lieu de lire la réponse. C'est la cause numéro un d'une voix qui déraille : vérifie ce fichier en premier.</p>
+      </div>
+      <div class="note attention">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <p>Clone uniquement ta voix, ou celle de quelqu'un qui t'a donné son accord.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-6">
+    <span class="num">6</span>
+    <div class="corps">
+      <h2>Tester</h2>
+      <div class="code"><pre><code>~/.claude-speaks/venv/bin/python ~/.claude-speaks/claude_speaks.py say "Salut, c'est Claude. Tu m'entends bien ?"</code></pre></div>
+      <p>La toute première fois, il faut 10 à 20 secondes pour charger le modèle. Ensuite il reste en mémoire et la voix part tout de suite. Si ton enregistrement fait moins de 8 secondes, le script te prévient.</p>
+      <p>Le script lit en français par défaut. Pour une autre langue, ouvre <code>~/.claude-speaks/claude_speaks.py</code> et change la ligne <code>LANGUE = "french"</code> (english, german, italian, portuguese, spanish, japanese, korean, russian, chinese).</p>
+    </div>
+  </section>
+
+  <section class="bloc etape" id="etape-7">
+    <span class="num">7</span>
+    <div class="corps">
+      <h2>Brancher sur Claude Code</h2>
+      <p>On ajoute un <b>hook</b> : une commande que Claude Code lance tout seul quand il a fini de répondre. Il se règle dans le fichier <code>~/.claude/settings.json</code>.</p>
+      <p><b>Le plus simple</b> : demande-le à Claude Code lui-même. Colle-lui ce message :</p>
+      <div class="code"><pre><code>Fais une copie de ~/.claude/settings.json en settings.json.bak, puis ajoute ce hook dans la liste hooks.Stop, sans rien modifier d'autre. Crée la liste si elle n'existe pas :
+{"hooks": [{"type": "command", "command": "\"$HOME/.claude-speaks/venv/bin/python\" \"$HOME/.claude-speaks/claude_speaks.py\" hook", "timeout": 10}]}</code></pre></div>
+      <p><b>À la main</b>, si tu préfères : fais une copie du fichier, puis ajoute ce bloc au premier niveau, entre les accolades du fichier. Si tu as déjà une section <code>"hooks"</code>, ajoute seulement la partie <code>"Stop"</code> dedans. Et si tu as déjà une liste <code>"Stop"</code>, ajoute l'objet à la suite des autres. Si le fichier n'existe pas, crée-le avec ce bloc entouré d'une paire d'accolades <code>{ }</code>.</p>
+      <div class="code"><pre><code>"hooks": {
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"$HOME/.claude-speaks/venv/bin/python\" \"$HOME/.claude-speaks/claude_speaks.py\" hook",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}</code></pre></div>
+      <p>Vérifie que le fichier est toujours valide :</p>
+      <div class="code"><pre><code>python3 -m json.tool ~/.claude/settings.json > /dev/null && echo "fichier valide"</code></pre></div>
+      <p>Relance Claude Code et pose-lui une question. Il lit sa réponse finale, pas les petites notes du genre "je regarde le fichier". Le hook rend la main en moins d'un dixième de seconde : la voix se génère à côté, sans ralentir Claude.</p>
+    </div>
+  </section>
+
+  <section class="bloc" id="quotidien">
+    <h2>Au quotidien</h2>
+    <div class="tableau">
+      <table>
+        <thead><tr><th>Pour</th><th>Tape dans le Terminal</th></tr></thead>
+        <tbody>
+          <tr><td>Couper le son</td><td><code>touch ~/.claude-speaks/muted</code></td></tr>
+          <tr><td>Remettre le son</td><td><code>rm ~/.claude-speaks/muted</code></td></tr>
+          <tr><td>Couper la phrase en cours</td><td><code>~/.claude-speaks/venv/bin/python ~/.claude-speaks/claude_speaks.py stop</code></td></tr>
+          <tr><td>Libérer la mémoire</td><td><code>pkill -f "claude_speaks.py serve"</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:var(--e5)">Pour aller plus vite, ajoute deux raccourcis à ton <code>~/.zshrc</code>, puis ouvre un nouveau terminal. Ensuite <code>chut</code> coupe et <code>parle</code> remet le son.</p>
+    <div class="code"><pre><code>echo 'alias chut="touch ~/.claude-speaks/muted; ~/.claude-speaks/venv/bin/python ~/.claude-speaks/claude_speaks.py stop"' >> ~/.zshrc
+echo 'alias parle="rm -f ~/.claude-speaks/muted"' >> ~/.zshrc</code></pre></div>
+    <p><b>Changer de voix</b> : refais l'étape 5 avec un autre enregistrement, puis <code>pkill -f "claude_speaks.py serve"</code>. Le serveur repart tout seul avec la nouvelle voix à la réponse suivante. Même chose après avoir changé la langue.</p>
+  </section>
+
+  <section class="bloc" id="mieux">
+    <h2>Faire mieux sonner Claude</h2>
+    <p class="lede">Claude écrit pour un écran. Tu peux lui demander d'écrire pour l'oreille.</p>
+    <p style="margin-top:var(--e5)">Ajoute ces lignes dans ton <code>CLAUDE.md</code> :</p>
+    <div class="code"><pre><code>## Réponses lues à voix haute
+Mes réponses sont lues par une synthèse vocale. Quand c'est possible :
+- phrases courtes, une idée par phrase ;
+- l'essentiel dans les deux premières phrases ;
+- pas d'abréviations (écris "par exemple", pas "ex.") ;
+- les nombres importants écrits comme on les dit.</code></pre></div>
+    <p>Sans rien demander, le script saute les blocs de code, les tableaux, les adresses web en http, les balises HTML et les emojis. Pour un lien, il lit le texte du lien. Un chemin de fichier écrit entre accents graves (<code>`comme ça`</code>) est sauté, mais un chemin écrit en clair dans une phrase est lu.</p>
+    <p><b>Quand la voix déraille</b> sur une réponse, dis-le à Claude. La dernière lecture est gardée dans <code>~/.claude-speaks/derniere.wav</code>, avec son texte à côté. Par exemple :</p>
+    <div class="code"><pre><code>La voix a déraillé sur ta dernière réponse. Analyse ~/.claude-speaks/derniere.wav (hauteur de voix, débit, silences) et dis-moi ce qui cloche.</code></pre></div>
+    <p>C'est comme ça qu'on a découvert qu'en générant phrase par phrase, l'intonation repartait de zéro à chaque phrase. Le script génère donc la réponse par gros blocs : l'écart de hauteur de voix est passé de 2,4 à 1,7 demi-ton. Pour comparer, l'enregistrement d'origine varie de 2,3.</p>
+  </section>
+
+  <section class="bloc" id="limites">
+    <h2>Limites et vie privée</h2>
+    <ul style="margin-top:var(--e5)">
+      <li>Claude parle quand il a fini d'écrire, pas pendant. Sur une réponse courte, ça ne se sent pas. Sur une longue, tu attends la fin du texte.</li>
+      <li>La première réponse après un redémarrage attend le chargement du modèle, 5 à 20 secondes.</li>
+      <li>Les mots anglais au milieu d'une phrase en français sont parfois prononcés à la française.</li>
+      <li>Si deux sessions Claude Code tournent en même temps, elles partagent la même voix : la dernière qui parle coupe l'autre.</li>
+      <li>Une fois le modèle téléchargé, <b>rien ne sort de ton Mac</b>. Le script interdit à la bibliothèque de Hugging Face d'aller en ligne. Le serveur écoute sur un fichier local que seul ton compte peut ouvrir, jamais sur un port réseau. Le dossier <code>~/.claude-speaks</code> (ta voix, la dernière lecture) n'est lisible que par toi.</li>
+    </ul>
+    <p class="small sourdine" style="margin-top:var(--e4)">Chiffres mesurés sur un MacBook Pro M5 : premier mot entre 0,3 et 0,5 seconde après la fin de la réponse, démarrage du serveur entre 4 et 18 secondes.</p>
+  </section>
+
+  <section class="bloc" id="desinstaller">
+    <h2>Désinstaller</h2>
+    <p style="margin-top:var(--e5)">Retire d'abord le hook de <code>~/.claude/settings.json</code> (ou demande à Claude de le faire), sinon Claude Code signalera une erreur à chaque réponse. Si tu les as ajoutés, retire aussi le bloc "Réponses lues à voix haute" de ton <code>CLAUDE.md</code> et les alias <code>chut</code> et <code>parle</code> de ton <code>~/.zshrc</code>. Ensuite :</p>
+    <div class="code"><pre><code>pkill -f "claude_speaks.py serve"
+rm -rf ~/.claude-speaks
+rm -rf ~/.cache/huggingface/hub/models--mlx-community--Qwen3-TTS-12Hz-0.6B-Base-bf16</code></pre></div>
+    <p class="small sourdine">La copie <code>~/.claude/settings.json.bak</code> faite à l'étape 7 reste là : supprime-la quand tout va bien.</p>
+  </section>
+
+  <hr>
+  <footer>
+    <p>Merci à <a href="https://github.com/QwenLM/Qwen3-TTS">Qwen3-TTS</a> (Apache 2.0) et à <a href="https://github.com/Blaizzy/mlx-audio">mlx-audio</a> (MIT). L'idée du hook qui lit la dernière réponse vient de <a href="https://github.com/MichaelPGifford/claude-read-aloud">claude-read-aloud</a>.</p>
+    <p style="margin-top:var(--e2)">Par Aurélien Foutoyet. Script sous licence MIT, sur <a href="https://github.com/a-foutoyet/claude-speaks">GitHub</a>.</p>
+  </footer>
+</main>
+
+<script>
+// Un bouton copier sur chaque bloc de code (picto Lucide "copy", puis "check" qui se trace)
+const ICONES = '<svg class="ko" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'
+  + '<svg class="ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+document.querySelectorAll('.code').forEach(function (bloc) {
+  const b = document.createElement('button');
+  b.className = 'copier';
+  b.type = 'button';
+  b.setAttribute('aria-label', 'Copier');
+  b.innerHTML = ICONES;
+  b.addEventListener('click', function () {
+    navigator.clipboard.writeText(bloc.querySelector('code').innerText).then(function () {
+      b.classList.add('fait');
+      b.setAttribute('aria-label', 'Copié');
+      setTimeout(function () { b.classList.remove('fait'); b.setAttribute('aria-label', 'Copier'); }, 1600);
+    });
+  });
+  bloc.appendChild(b);
+});
+</script>
+</body>
+</html>

@@ -5,12 +5,13 @@ Tuto : https://a-foutoyet.github.io/claude-speaks/
 
     python claude_speaks.py transcrire    ecrit voix.txt a partir de voix.wav (Whisper)
     python claude_speaks.py say "Salut"   fait parler (lance le serveur si besoin)
-    python claude_speaks.py stop          coupe la parole
+    python claude_speaks.py stop          coupe la phrase en cours
+    python claude_speaks.py off | on      coupe ou remet la lecture automatique
+    python claude_speaks.py quitter       arrete le serveur et libere la memoire
     python claude_speaks.py hook          point d'entree du hook Stop de Claude Code
     python claude_speaks.py serve         le serveur (lance tout seul)
 
-Couper le son :    touch ~/.claude-speaks/muted
-Remettre le son :  rm ~/.claude-speaks/muted
+Dans Claude Code, avec la commande /parole : /parole off, /parole on, /parole stop.
 """
 import json
 import os
@@ -276,5 +277,15 @@ if __name__ == "__main__":
         dire(pour_oral(" ".join(sys.argv[2:])))
     elif cmd == "stop":
         envoyer({"cmd": "stop"})
+    elif cmd == "off":
+        MUET.touch()
+        envoyer({"cmd": "stop"})
+        print("Lecture automatique coupee.")
+    elif cmd == "on":
+        MUET.unlink(missing_ok=True)
+        print("Lecture automatique remise.")
+    elif cmd == "quitter":
+        subprocess.run(["pkill", "-f", f"{SCRIPT} serve"])
+        print("Serveur arrete, memoire liberee. Il repart tout seul a la prochaine reponse.")
     else:
         print(__doc__)

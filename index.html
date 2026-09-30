@@ -98,6 +98,7 @@ li + li{margin-top:var(--e2)}
   background:hsl(var(--muted)/.5);border:1px solid hsl(var(--border));border-radius:var(--radius);
   font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;line-height:20px;white-space:pre;overflow-x:auto}
 .code pre code{background:none;padding:0;font-size:inherit;border-radius:0}
+.code.message pre{white-space:pre-wrap;overflow-wrap:anywhere}
 .copier{position:absolute;top:8px;right:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;
   background:hsl(var(--background));color:hsl(var(--muted-foreground));border:1px solid hsl(var(--border));
   border-radius:calc(var(--radius) - 2px);cursor:pointer;
@@ -159,6 +160,7 @@ footer{font-size:var(--t-small);line-height:var(--lh-small);color:hsl(var(--mute
     </ul>
     <ul class="sommaire" aria-label="Sommaire">
       <li><a href="#prerequis">Prérequis</a></li>
+      <li><a href="#sans-terminal">Sans Terminal</a></li>
       <li><a href="#etape-1">Installation</a></li>
       <li><a href="#etape-5">Ta voix</a></li>
       <li><a href="#etape-7">Brancher sur Claude</a></li>
@@ -177,7 +179,18 @@ footer{font-size:var(--t-small);line-height:var(--lh-small);color:hsl(var(--mute
       <li><a href="https://brew.sh">Homebrew</a>, pour installer Python et ffmpeg.</li>
       <li>Environ <b>5 Go</b> d'espace libre : 2,4 Go pour le modèle de voix, 1,6 Go pour Whisper, le reste pour Python et ses bibliothèques.</li>
     </ul>
-    <p class="small sourdine" style="margin-top:var(--e4)">Toutes les commandes se tapent dans le Terminal. Chaque bloc a un bouton pour copier.</p>
+    <p class="small sourdine" style="margin-top:var(--e4)">Les commandes des étapes se tapent dans le Terminal, et chaque bloc a un bouton pour copier. Tu n'utilises pas le Terminal ? Laisse faire Claude, juste en dessous.</p>
+  </section>
+
+  <section class="bloc" id="sans-terminal">
+    <h2>Sans toucher au Terminal</h2>
+    <p class="lede">Claude Code sait lancer les commandes lui-même. Tu peux lui confier toute l'installation.</p>
+    <p style="margin-top:var(--e5)">Colle ce message dans Claude Code :</p>
+    <div class="code message"><pre><code>Installe claude-speaks pour moi en suivant le tuto https://a-foutoyet.github.io/claude-speaks/
+Fais les étapes 1 à 4, puis arrête-toi : je vais enregistrer ma voix et te dire où est le fichier.
+Ensuite tu feras les étapes 5 à 8. À l'étape 5, montre-moi le texte transcrit pour que je le vérifie.</code></pre></div>
+    <p>Claude te demandera d'autoriser chaque commande : c'est normal. Seule exception, Homebrew : s'il n'est pas encore sur ton Mac, installe-le toi-même depuis <a href="https://brew.sh">brew.sh</a>, parce qu'il demande ton mot de passe.</p>
+    <p>Pour l'enregistrement, fais-le au dictaphone de l'iPhone, envoie-le sur le Mac par AirDrop, et donne à Claude le nom du fichier (il arrive dans Téléchargements). Les conseils de l'étape 5 valent aussi dans ce cas.</p>
   </section>
 
   <section class="bloc etape" id="etape-1">
@@ -224,7 +237,7 @@ venv/bin/hf download openai/whisper-large-v3-turbo</code></pre></div>
       <p>Un seul fichier Python fait le lien entre Claude Code et le modèle. Il garde le modèle en mémoire pour parler vite, et il retire de la réponse ce qui ne se lit pas bien à l'oral.</p>
       <div class="code"><pre><code>cd ~/.claude-speaks
 curl -fsSLO https://a-foutoyet.github.io/claude-speaks/claude_speaks.py</code></pre></div>
-      <p class="small sourdine">Tu peux <a href="claude_speaks.py">le lire avant</a> : environ 280 lignes commentées, sans aucun appel réseau.</p>
+      <p class="small sourdine">Tu peux <a href="claude_speaks.py">le lire avant</a> : environ 290 lignes commentées, sans aucun appel réseau.</p>
     </div>
   </section>
 
@@ -275,7 +288,7 @@ venv/bin/python claude_speaks.py say "Salut, c'est Claude. Tu m'entends ?"</code
       <h2>Brancher sur Claude Code</h2>
       <p>Il reste à ajouter un <b>hook</b> : une commande que Claude Code lance tout seul quand il a fini de répondre. Il se règle dans le fichier <code>~/.claude/settings.json</code>.</p>
       <p><b>Le plus simple</b> : demande-le à Claude Code lui-même. Colle-lui ce message :</p>
-      <div class="code"><pre><code>Fais une copie de ~/.claude/settings.json en settings.json.bak, puis ajoute ce hook dans la liste hooks.Stop, sans rien modifier d'autre. Crée la liste si elle n'existe pas :
+      <div class="code message"><pre><code>Fais une copie de ~/.claude/settings.json en settings.json.bak, puis ajoute ce hook dans la liste hooks.Stop, sans rien modifier d'autre. Crée la liste si elle n'existe pas :
 {"hooks": [{"type": "command", "command": "\"$HOME/.claude-speaks/venv/bin/python\" \"$HOME/.claude-speaks/claude_speaks.py\" hook", "timeout": 10}]}</code></pre></div>
       <p><b>À la main</b>, si tu préfères : fais une copie du fichier, puis ajoute ce bloc au premier niveau, entre les accolades du fichier. Si tu as déjà une section <code>"hooks"</code>, ajoute seulement la partie <code>"Stop"</code> dedans. Et si tu as déjà une liste <code>"Stop"</code>, ajoute l'objet à la suite des autres. Si le fichier n'existe pas, crée-le avec ce bloc entouré d'une paire d'accolades <code>{ }</code>.</p>
       <div class="code"><pre><code>"hooks": {
@@ -297,30 +310,39 @@ venv/bin/python claude_speaks.py say "Salut, c'est Claude. Tu m'entends ?"</code
     </div>
   </section>
 
+  <section class="bloc etape" id="etape-8">
+    <span class="num">8</span>
+    <div class="corps">
+      <h2>Ajouter la commande /parole</h2>
+      <p>Pour couper ou remettre la voix directement dans le chat de Claude Code, sans passer par le Terminal :</p>
+      <div class="code"><pre><code>mkdir -p ~/.claude/commands
+curl -fsSL -o ~/.claude/commands/parole.md https://a-foutoyet.github.io/claude-speaks/parole.md</code></pre></div>
+      <p>Relance Claude Code : la commande <code>/parole</code> apparaît quand tu tapes <code>/</code>.</p>
+    </div>
+  </section>
+
   <section class="bloc" id="quotidien">
     <h2>Au quotidien</h2>
     <div class="tableau">
       <table>
-        <thead><tr><th>Pour</th><th>Tape dans le Terminal</th></tr></thead>
+        <thead><tr><th>Pour</th><th>Dans Claude Code</th><th>Dans le Terminal, depuis <code>~/.claude-speaks</code></th></tr></thead>
         <tbody>
-          <tr><td>Couper le son</td><td><code>touch ~/.claude-speaks/muted</code></td></tr>
-          <tr><td>Remettre le son</td><td><code>rm ~/.claude-speaks/muted</code></td></tr>
-          <tr><td>Couper la phrase en cours</td><td><code>~/.claude-speaks/venv/bin/python ~/.claude-speaks/claude_speaks.py stop</code></td></tr>
-          <tr><td>Libérer la mémoire</td><td><code>pkill -f "claude_speaks.py serve"</code></td></tr>
+          <tr><td>Couper la voix</td><td><code>/parole off</code></td><td><code>venv/bin/python claude_speaks.py off</code></td></tr>
+          <tr><td>Remettre la voix</td><td><code>/parole on</code></td><td><code>venv/bin/python claude_speaks.py on</code></td></tr>
+          <tr><td>Couper la phrase en cours</td><td><code>/parole stop</code></td><td><code>venv/bin/python claude_speaks.py stop</code></td></tr>
+          <tr><td>Libérer la mémoire</td><td><code>/parole quitter</code></td><td><code>venv/bin/python claude_speaks.py quitter</code></td></tr>
         </tbody>
       </table>
     </div>
-    <p style="margin-top:var(--e5)">Pour aller plus vite, ajoute deux raccourcis à ton <code>~/.zshrc</code>, puis ouvre un nouveau terminal. Ensuite <code>chut</code> coupe et <code>parle</code> remet le son.</p>
-    <div class="code"><pre><code>echo 'alias chut="touch ~/.claude-speaks/muted; ~/.claude-speaks/venv/bin/python ~/.claude-speaks/claude_speaks.py stop"' >> ~/.zshrc
-echo 'alias parle="rm -f ~/.claude-speaks/muted"' >> ~/.zshrc</code></pre></div>
-    <p><b>Changer de voix</b> : refais l'étape 5 avec un autre enregistrement, puis <code>pkill -f "claude_speaks.py serve"</code>. Le serveur repart tout seul avec la nouvelle voix à la réponse suivante. Même chose après avoir changé la langue.</p>
+    <p style="margin-top:var(--e5)"><b>Changer de voix</b> : refais l'étape 5 avec un autre enregistrement, puis <code>/parole quitter</code>. La nouvelle voix se charge à la réponse suivante. Tu peux aussi le demander à Claude : "Refais l'étape 5 de claude-speaks avec ~/Downloads/nouvelle-voix.m4a".</p>
+    <p><b>Changer de langue</b> : demande à Claude de remplacer <code>LANGUE = "french"</code> par la langue voulue dans <code>~/.claude-speaks/claude_speaks.py</code>, puis <code>/parole quitter</code>.</p>
   </section>
 
   <section class="bloc" id="mieux">
     <h2>Faire mieux sonner Claude</h2>
     <p class="lede">Claude écrit pour un écran. Tu peux lui demander d'écrire pour l'oreille.</p>
     <p style="margin-top:var(--e5)">Ajoute ces lignes dans ton <code>CLAUDE.md</code> :</p>
-    <div class="code"><pre><code>## Réponses lues à voix haute
+    <div class="code message"><pre><code>## Réponses lues à voix haute
 Mes réponses sont lues par une synthèse vocale. Quand c'est possible :
 - phrases courtes, une idée par phrase ;
 - l'essentiel dans les deux premières phrases ;
@@ -328,7 +350,7 @@ Mes réponses sont lues par une synthèse vocale. Quand c'est possible :
 - les nombres importants écrits comme on les dit.</code></pre></div>
     <p>Sans rien demander, le script saute les blocs de code, les tableaux, les adresses web en http, les balises HTML et les emojis. Pour un lien, il lit le texte du lien. Un chemin de fichier écrit entre accents graves (<code>`comme ça`</code>) est sauté, mais un chemin écrit en clair dans une phrase est lu.</p>
     <p><b>Quand la voix déraille</b> sur une réponse, dis-le à Claude. La dernière lecture est gardée dans <code>~/.claude-speaks/derniere.wav</code>, avec son texte à côté. Par exemple :</p>
-    <div class="code"><pre><code>La voix a déraillé sur ta dernière réponse. Analyse ~/.claude-speaks/derniere.wav (hauteur de voix, débit, silences) et dis-moi ce qui cloche.</code></pre></div>
+    <div class="code message"><pre><code>La voix a déraillé sur ta dernière réponse. Analyse ~/.claude-speaks/derniere.wav (hauteur de voix, débit, silences) et dis-moi ce qui cloche.</code></pre></div>
     <p>Claude sait mesurer la hauteur de voix, le débit et les silences dans ce fichier. Si la voix invente des sons, vérifie d'abord ton <code>voix.txt</code> : c'est la cause la plus fréquente.</p>
   </section>
 
@@ -346,8 +368,9 @@ Mes réponses sont lues par une synthèse vocale. Quand c'est possible :
 
   <section class="bloc" id="desinstaller">
     <h2>Désinstaller</h2>
-    <p style="margin-top:var(--e5)">Retire d'abord le hook de <code>~/.claude/settings.json</code> (ou demande à Claude de le faire), sinon Claude Code signalera une erreur à chaque réponse. Si tu les as ajoutés, retire aussi le bloc "Réponses lues à voix haute" de ton <code>CLAUDE.md</code> et les alias <code>chut</code> et <code>parle</code> de ton <code>~/.zshrc</code>. Ensuite :</p>
+    <p style="margin-top:var(--e5)">Retire d'abord le hook de <code>~/.claude/settings.json</code> (ou demande à Claude de le faire), sinon Claude Code signalera une erreur à chaque réponse. Si tu l'as ajouté, retire aussi le bloc "Réponses lues à voix haute" de ton <code>CLAUDE.md</code>. Ensuite, dans le Terminal (ou demande à Claude de lancer ces commandes) :</p>
     <div class="code"><pre><code>pkill -f "claude_speaks.py serve"
+rm -f ~/.claude/commands/parole.md
 rm -rf ~/.claude-speaks
 rm -rf ~/.cache/huggingface/hub/models--mlx-community--Qwen3-TTS-12Hz-0.6B-Base-bf16
 rm -rf ~/.cache/huggingface/hub/models--openai--whisper-large-v3-turbo</code></pre></div>

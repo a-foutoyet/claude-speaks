@@ -313,11 +313,11 @@ venv/bin/python claude_speaks.py say "Salut, c'est Claude. Tu m'entends ?"</code
   <section class="bloc etape" id="etape-8">
     <span class="num">8</span>
     <div class="corps">
-      <h2>Ajouter la commande /parole</h2>
+      <h2>Ajouter la commande /talk</h2>
       <p>Pour couper ou remettre la voix directement dans le chat de Claude Code, sans passer par le Terminal :</p>
       <div class="code"><pre><code>mkdir -p ~/.claude/commands
-curl -fsSL -o ~/.claude/commands/parole.md https://a-foutoyet.github.io/claude-speaks/parole.md</code></pre></div>
-      <p>Relance Claude Code : la commande <code>/parole</code> apparaît quand tu tapes <code>/</code>.</p>
+curl -fsSL -o ~/.claude/commands/talk.md https://a-foutoyet.github.io/claude-speaks/talk.md</code></pre></div>
+      <p>Relance Claude Code : la commande <code>/talk</code> apparaît quand tu tapes <code>/</code>.</p>
     </div>
   </section>
 
@@ -327,15 +327,15 @@ curl -fsSL -o ~/.claude/commands/parole.md https://a-foutoyet.github.io/claude-s
       <table>
         <thead><tr><th>Pour</th><th>Dans Claude Code</th><th>Dans le Terminal, depuis <code>~/.claude-speaks</code></th></tr></thead>
         <tbody>
-          <tr><td>Couper la voix</td><td><code>/parole off</code></td><td><code>venv/bin/python claude_speaks.py off</code></td></tr>
-          <tr><td>Remettre la voix</td><td><code>/parole on</code></td><td><code>venv/bin/python claude_speaks.py on</code></td></tr>
-          <tr><td>Couper la phrase en cours</td><td><code>/parole stop</code></td><td><code>venv/bin/python claude_speaks.py stop</code></td></tr>
-          <tr><td>Libérer la mémoire</td><td><code>/parole quitter</code></td><td><code>venv/bin/python claude_speaks.py quitter</code></td></tr>
+          <tr><td>Couper la voix</td><td><code>/talk off</code></td><td><code>venv/bin/python claude_speaks.py off</code></td></tr>
+          <tr><td>Remettre la voix</td><td><code>/talk on</code></td><td><code>venv/bin/python claude_speaks.py on</code></td></tr>
+          <tr><td>Couper la phrase en cours</td><td><code>/talk stop</code></td><td><code>venv/bin/python claude_speaks.py stop</code></td></tr>
+          <tr><td>Libérer la mémoire</td><td><code>/talk quitter</code></td><td><code>venv/bin/python claude_speaks.py quitter</code></td></tr>
         </tbody>
       </table>
     </div>
-    <p style="margin-top:var(--e5)"><b>Changer de voix</b> : refais l'étape 5 avec un autre enregistrement, puis <code>/parole quitter</code>. La nouvelle voix se charge à la réponse suivante. Tu peux aussi le demander à Claude : "Refais l'étape 5 de claude-speaks avec ~/Downloads/nouvelle-voix.m4a".</p>
-    <p><b>Changer de langue</b> : demande à Claude de remplacer <code>LANGUE = "french"</code> par la langue voulue dans <code>~/.claude-speaks/claude_speaks.py</code>, puis <code>/parole quitter</code>.</p>
+    <p style="margin-top:var(--e5)"><b>Changer de voix</b> : refais l'étape 5 avec un autre enregistrement, puis <code>/talk quitter</code>. La nouvelle voix se charge à la réponse suivante. Tu peux aussi le demander à Claude : "Refais l'étape 5 de claude-speaks avec ~/Downloads/nouvelle-voix.m4a".</p>
+    <p><b>Changer de langue</b> : demande à Claude de remplacer <code>LANGUE = "french"</code> par la langue voulue dans <code>~/.claude-speaks/claude_speaks.py</code>, puis <code>/talk quitter</code>.</p>
   </section>
 
   <section class="bloc" id="mieux">
@@ -370,7 +370,7 @@ Mes réponses sont lues par une synthèse vocale. Quand c'est possible :
     <h2>Désinstaller</h2>
     <p style="margin-top:var(--e5)">Retire d'abord le hook de <code>~/.claude/settings.json</code> (ou demande à Claude de le faire), sinon Claude Code signalera une erreur à chaque réponse. Si tu l'as ajouté, retire aussi le bloc "Réponses lues à voix haute" de ton <code>CLAUDE.md</code>. Ensuite, dans le Terminal (ou demande à Claude de lancer ces commandes) :</p>
     <div class="code"><pre><code>pkill -f "claude_speaks.py serve"
-rm -f ~/.claude/commands/parole.md
+rm -f ~/.claude/commands/talk.md
 rm -rf ~/.claude-speaks
 rm -rf ~/.cache/huggingface/hub/models--mlx-community--Qwen3-TTS-12Hz-0.6B-Base-bf16
 rm -rf ~/.cache/huggingface/hub/models--openai--whisper-large-v3-turbo</code></pre></div>

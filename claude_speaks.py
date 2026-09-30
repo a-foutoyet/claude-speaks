@@ -11,7 +11,7 @@ Tuto : https://a-foutoyet.github.io/claude-speaks/
     python claude_speaks.py hook          point d'entree du hook Stop de Claude Code
     python claude_speaks.py serve         le serveur (lance tout seul)
 
-Dans Claude Code, avec la commande /parole : /parole off, /parole on, /parole stop.
+Dans Claude Code, avec la commande /talk : /talk off, /talk on, /talk stop.
 """
 import json
 import os
